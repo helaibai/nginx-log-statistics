@@ -11,6 +11,7 @@
 #include <sys/stat.h>
 
 #include "store.h"
+#include "debug.h"
 
 struct log_head head_table[HASH_SIZE];
 

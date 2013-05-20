@@ -14,19 +14,6 @@
 
 #define hash(key, hash_size) ((key)%(hash_size))
 
-
-#ifdef DEBUG_ERR
-#define DBG_ERR(fmt, args...) fprintf(stderr, "%s:%-5d: " fmt, __FUNCTION__, __LINE__, ## args)
-#else
-#define DBG_ERR(fmt, args...)   do {  } while(0)
-#endif
-
-#ifdef DEBUG_INFO
-#define DBG_INFO(fmt, args...) fprintf(stdout, "%s:%-5d: " fmt, __FUNCTION__, __LINE__, ## args)
-#else
-#define DBG_INFO(fmt, args...)   do {  } while(0)
-#endif
-
 union ip_type{
 	int int_ip;
 	struct in_addr net_ip;

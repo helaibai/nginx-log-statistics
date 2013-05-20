@@ -7,6 +7,7 @@
 #include <error.h>
 #include <fcntl.h>
 
+#include "debug.h"
 #include "store.h"
 
 #define _XOPEN_SOURCE 500
