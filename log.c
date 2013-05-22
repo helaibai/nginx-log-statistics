@@ -9,6 +9,7 @@
 
 #include "debug.h"
 #include "store.h"
+#include "strnchar.h"
 
 #define _XOPEN_SOURCE 500
 

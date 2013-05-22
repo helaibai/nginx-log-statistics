@@ -1,4 +1,4 @@
-OBJ=log.o store.o debug.o hash.o
+OBJ=log.o store.o debug.o hash.o strnchar.o
 CC=gcc
 #CFLAGS= -DDEBUG
 all: log
