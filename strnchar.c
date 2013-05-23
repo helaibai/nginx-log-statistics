@@ -1,8 +1,12 @@
+
 #include <stdio.h>
 #include <debug.h>
 
 #include "strnchar.h"
 
+/*
+* 32bits suport, don't suport 64bits
+*/
 char *strnchar(const char *str, char chr, int len)
 {
 	return NULL;
