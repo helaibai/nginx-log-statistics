@@ -10,6 +10,7 @@
 #include "debug.h"
 #include "store.h"
 #include "strnchar.h"
+#include "types.h"
 
 #define _XOPEN_SOURCE 500
 
@@ -49,7 +50,7 @@ int log_fd;
 int main(int argc, char **argv)
 {
 	char log_path[LOG_PATH_SIZE];
-	int i;
+	u64 i;
 	off_t log_size = 0;
 	off_t log_start = 0;
 	off_t log_end = 0;
@@ -156,7 +157,7 @@ int main(int argc, char **argv)
 }
 void useg(char *cmd)
 {
-	printf("Useg:%s <log path> <thread number>\n",cmd);	
+	printf("Useg:%s <log path>\n",cmd);	
 }
 /*
 pread() reads  up to count bytes from file descriptor fd at 
@@ -164,12 +165,11 @@ pread() reads  up to count bytes from file descriptor fd at
         starting at buf.  The file offset is not changed.
 */
 #define MIN_IP_LEN 8
-#define MIN_STRING_LEN 150 
-#define MINI(a,b) ((a)>(b)?:(b),(a))
+#define MINI(a,b) ((a)>(b)?(b):(a))
 
 int one_log(char *log_start)
 {
-	char *p = log_start;
+	const char *p = log_start;
 	
 	p +=MIN_IP_LEN;
 	
@@ -177,10 +177,8 @@ int one_log(char *log_start)
 	
 	log_store(log_start,(p-log_start));
 
-	p += MIN_STRING_LEN;
-
 	//here may be a BUG
-	while(*(p++) != '\n');
+	p = find_char_c(p, '\n') + 1;
 	
 	return (p - log_start);//return 	
 }
@@ -197,7 +195,7 @@ int buf_log(char *buf, int len)
 }
 void *log_pthread(void *arg)
 {
-	int no = (int)arg;
+	u64 no = (u64)arg;
 	char pthread_buf[PTHREAD_BUF_SIZE];
 	ssize_t read_len = 0;
 	

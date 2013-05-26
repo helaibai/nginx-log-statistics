@@ -15,7 +15,7 @@
 
 struct log_head head_table[HASH_SIZE];
 
-int debug(char *p, int len)
+void debug(char *p, int len)
 {
 	while(len--)
 	printf("%c",*p++);

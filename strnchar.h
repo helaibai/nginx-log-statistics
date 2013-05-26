@@ -1,6 +1,7 @@
 #ifndef __STRNCHAR_H__
 #define __STRNCHAR_H__
 
-char *strnchar(const char *str, char chr, int len);
+const char *strnchar(const char *str, char chr, int len);
+const char *find_char_c(const char *str, char c);
 
 #endif

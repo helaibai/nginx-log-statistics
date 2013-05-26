@@ -1,17 +1,17 @@
-
 #include <stdio.h>
-#include <debug.h>
 
+#include "debug.h"
 #include "strnchar.h"
+#include "types.h"
 
 /*
 * 32bits suport, don't suport 64bits
 */
-char *strnchar(const char *str, char chr, int len)
+const char *strnchar(const char *str, char chr, int len)
 {
 	return NULL;
 }
-char *find_char_c(const char *str, char c)
+const char *find_char_c(const char *str, char c)
 {
 	const char *char_ptr;
 	const ulong *longword_ptr;
@@ -20,7 +20,7 @@ char *find_char_c(const char *str, char c)
 
 	for(char_ptr = str;((ulong)char_ptr & (sizeof(ulong)-1)) != 0;++char_ptr)
 	{
-		if(char_ptr == c)
+		if((*char_ptr) == c)
 		{
 			return  char_ptr;
 		}
