@@ -1,22 +1,24 @@
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
-#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #include <error.h>
 #include <fcntl.h>
+#include <ctype.h>
 
 #include "debug.h"
 #include "store.h"
 #include "strnchar.h"
 #include "types.h"
+#include "log.h"
 
 #define _XOPEN_SOURCE 500
 
 /* configure */
 
-#define PTHREAD_NUMBER 	4
+#define PTHREAD_NUMBER 	1
 
 #define PTHREAD_BUF_SIZE 4096*2
 
@@ -25,12 +27,6 @@
 
 
 
-struct log_part_t{
-	off_t log_start;	
-	off_t log_end;
-	off_t log_cur_pos;
-
-};
 void *log_pthread(void *arg);
 
 int buf_log(char *buf, int len);
@@ -132,7 +128,7 @@ int main(int argc, char **argv)
 	/* debug infomation */
 	for(i=0; i<PTHREAD_NUMBER; ++i)
 	{
-		DBG_INFO("log_part[%d] : %ld -- %ld \n",i,log_arry[i].log_start,log_arry[i].log_end);
+		DBG_INFO("log_part[%ld] : %ld -- %ld \n",i,log_arry[i].log_start,log_arry[i].log_end);
 	}
 	/* LOG START */
 	for(i=0; i<PTHREAD_NUMBER; ++i)
@@ -166,21 +162,28 @@ pread() reads  up to count bytes from file descriptor fd at
 */
 #define MIN_IP_LEN 8
 #define MINI(a,b) ((a)>(b)?(b):(a))
-
+// IP 
 int one_log(char *log_start)
 {
 	const char *p = log_start;
+	struct log_info log_info_temp;
 	
+	while(isdigit(*p++));
+	p--;
+	//convert ip string to net ip
+	inet_aton(p, &log_info_temp.ip.net_ip);	
+	
+	//jump for ip length
 	p +=MIN_IP_LEN;
-	
-	while(*p++ != ' ');
-	
-	log_store(log_start,(p-log_start));
+	//find end of ip
+	//while(*p++ != ' ');
 
 	//here may be a BUG
 	p = find_char_c(p, '\n') + 1;
-	
-	return (p - log_start);//return 	
+
+	hash_put(&log_info_temp);
+
+	return (p - log_start);//return 
 }
 int buf_log(char *buf, int len)
 {
@@ -201,14 +204,17 @@ void *log_pthread(void *arg)
 	
 	log_arry[no].log_cur_pos = log_arry[no].log_start;
 	
+	DBG_INFO("pthread[%ld] start\n",no);
+	
 	while(log_arry[no].log_cur_pos <= log_arry[no].log_end)
 	{
+		//DBG_INFO("pthread[%d] running ...\n",no);
 		read_len = MINI(PTHREAD_BUF_SIZE, (log_arry[no].log_end - log_arry[no].log_cur_pos));
 		read_len = pread(log_fd, pthread_buf, read_len, log_arry[no].log_cur_pos);
 		read_len = down(pthread_buf, read_len);
 		log_arry[no].log_cur_pos += buf_log(pthread_buf, read_len);
 	}
-	DBG_INFO("pthread[%d] over\n",no);
+	DBG_INFO("pthread[%ld] over\n",no);
 	pthread_exit(NULL);
 	return (void *)NULL;
 }

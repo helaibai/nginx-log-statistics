@@ -17,7 +17,8 @@ const char *find_char_c(const char *str, char c)
 	const ulong *longword_ptr;
 	ulong find_word;
 	register ulong longword, himagic, lomagic;
-
+	
+	int i = 0;
 	for(char_ptr = str;((ulong)char_ptr & (sizeof(ulong)-1)) != 0;++char_ptr)
 	{
 		if((*char_ptr) == c)
@@ -27,13 +28,15 @@ const char *find_char_c(const char *str, char c)
 	}
 	longword_ptr = (ulong *)char_ptr;
 	
-	himagic = 0x80808080L;
-	lomagic = 0x01010101L;
+	himagic = HIMAGIC;
+	lomagic = LOMAGIC;
 
 	find_word = c |(c << 8);
 	find_word |= (find_word << 16); 
 
-	DBG_INFO("find_word[%0x]\n",find_word);
+#ifdef X86_64
+	find_word |= (find_word << 32); 
+#endif
 
 	while(1)
 	{
@@ -43,14 +46,13 @@ const char *find_char_c(const char *str, char c)
 		if(((longword - lomagic) & himagic) != 0)
 		{
 			const char *cp = (const char *)(longword_ptr-1);
-			if(cp[0] == c)
-				return cp;
-			if(cp[1] == c)
-				return cp+1;
-			if(cp[2] == c)
-				return cp+2;
-			if(cp[3] == c)
-				return cp+3;
+			for(i=0; i<(sizeof(char *)); ++i)
+			{
+				if(cp[i] == c)
+				{
+					return (cp + i);
+				}
+			}
 		}
 	}
 }

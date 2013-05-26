@@ -1,5 +1,8 @@
 #ifndef __DEBUG_H__
 #define __DEBUG_H__
+
+#define DEBUG_INFO
+
 #ifdef DEBUG_ERR
 #define DBG_ERR(fmt, args...) fprintf(stderr, "%s:%-5d: " fmt, __FUNCTION__, __LINE__, ## args)
 #else

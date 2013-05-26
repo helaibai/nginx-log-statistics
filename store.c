@@ -12,6 +12,7 @@
 
 #include "store.h"
 #include "debug.h"
+#include "log.h"
 
 struct log_head head_table[HASH_SIZE];
 
@@ -22,16 +23,18 @@ void debug(char *p, int len)
 	printf("\n");
 }
 
-int log_store(char *ip,int len)
+/*
+int log_store(log_info *log_info_p)
 {
 	union ip_type ip4;
 	
 	inet_aton(ip, &ip4.net_ip);
-	DBG_INFO("log_store():len = %d\n",len);	
+	//DBG_INFO("log_store():len = %d\n",len);	
 	//debug(ip, len);
 	hash_put(ip4);
 	return 0;
 }
+*/
 void hash_init()
 {
 	int i;
@@ -41,9 +44,9 @@ void hash_init()
 		head_table[i].head = NULL;
 	}
 }
-static void _each_node(struct log *log_node,void (*func)(void *))
+static void _each_node(struct log_info *log_node,void (*func)(void *))
 {
-	struct log *p = log_node;
+	struct log_info *p = log_node;
 	while(p)
 	{
 		log_node = p->next;
@@ -73,29 +76,27 @@ void hash_unint()
 	_each_list(free);
 }
 //kernel code
-int hash_put(union ip_type ip)
+int hash_put(struct log_info *log_info_p)
 {
-	struct log *p ,*q,*node;
-	int pos = hash(ip.int_ip, HASH_SIZE);
-	if(pos < 0 || pos > HASH_SIZE)
-	{
-		return -1;
-	}
+	struct log_info *p ,*q,*node;
+
+	unsigned int pos = hash(log_info_p->ip.int_ip, HASH_SIZE);
 
 	pthread_mutex_lock(&head_table[pos].head_lock);
 
 	p = head_table[pos].head;
 	if(p == NULL)
 	{
-		node = (struct log*)malloc(sizeof(struct log));
+		node = (struct log_info *)malloc(sizeof(struct log_info));
 		if(node == NULL)
 		{
 			DBG_ERR("no memory\n");
 			pthread_mutex_unlock(&head_table[pos].head_lock);
 			return -1;
 		}
-		node->ip.int_ip = ip.int_ip;
-		node->number = 1;
+		node->ip.int_ip = log_info_p->ip.int_ip;
+		node->access_times = 1;
+		node->ip_flow += log_info_p->ip_flow;
 		node->next = NULL;
 		head_table[pos].head = node;
 		pthread_mutex_unlock(&head_table[pos].head_lock);
@@ -104,24 +105,26 @@ int hash_put(union ip_type ip)
 	while(p)
 	{
 
-		if(p->ip.int_ip == ip.int_ip)
+		if(p->ip.int_ip == log_info_p->ip.int_ip)
 		{
-			p->number++;
+			p->access_times++;
+			p->ip_flow += log_info_p->ip_flow;
 			pthread_mutex_unlock(&head_table[pos].head_lock);
 			return 0;
 		}
 		q = p;
 		p = p->next;
 	}
-	node = (struct log *)malloc(sizeof(struct log));
+	node = (struct log_info *)malloc(sizeof(struct log_info));
 	if(node == NULL)
 	{
 		DBG_ERR("no memory\n");
 		pthread_mutex_unlock(&head_table[pos].head_lock);
 		return -1;
 	}
-	node->ip.int_ip = ip.int_ip;
-	node->number = 1;
+	node->ip.int_ip = log_info_p->ip.int_ip;
+	node->access_times++;
+	node->ip_flow += log_info_p->ip_flow;
 	node->next = NULL;
 	q->next = node;
 
@@ -130,9 +133,9 @@ int hash_put(union ip_type ip)
 	return 0;
 }
 
-int  hash_get(union ip_type ip, struct log *log_get)
+int  hash_get(union ip_type ip, struct log_info *log_get)
 {
-	struct log *p;
+	struct log_info *p;
 	p=head_table[hash(ip.int_ip, HASH_SIZE)].head;
 	if(p == NULL)
 	{
@@ -143,7 +146,7 @@ int  hash_get(union ip_type ip, struct log *log_get)
 		if(p->ip.int_ip == ip.int_ip)
 		{
 			log_get->ip.int_ip = p->ip.int_ip;
-			log_get->number = p->number;
+			log_get->access_times = p->access_times;
 			break;
 		}
 		p = p->next;
@@ -153,8 +156,8 @@ int  hash_get(union ip_type ip, struct log *log_get)
 }
 static void print_node(void *node_p)
 {
-	struct log *p = node_p;
-	printf("%s\t%d\n",inet_ntoa(p->ip.net_ip),p->number);
+	struct log_info *p = node_p;
+	printf("%s\t%d\t%ld\n",inet_ntoa(p->ip.net_ip), p->access_times, p->ip_flow);
 }
 void hash_list_all()
 {
