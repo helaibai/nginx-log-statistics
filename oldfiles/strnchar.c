@@ -45,13 +45,17 @@ const char *find_char_c(const char *str, char c)
 
 		if(((longword - lomagic) & himagic) != 0)
 		{
+      
 			const char *cp = (const char *)(longword_ptr-1);
-			for(i=0; i<(sizeof(char *)); ++i)
-			{
-				if(cp[i] == c)
-				{
-					return (cp + i);
-				}
+			
+      //need fixd
+         
+      //for(i=0; i<(sizeof(char *)); ++i)
+			//{
+			 //  if(cp[i] == c)
+			 //  {
+			 //  	return (cp + i);
+			 //  }
 			}
 		}
 	}
