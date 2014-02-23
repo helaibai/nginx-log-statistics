@@ -1,0 +1,2 @@
+#!/bin/sh
+git push https://code.google.com/p/nginx-log-statistics
