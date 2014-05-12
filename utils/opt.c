@@ -6,8 +6,20 @@
 typedef struct opt{
 	char label[LABEL_SIZE];
 	char value[VALUE_SIZE];
-	int valuelen;
+	int  valuelen;
 }opt_t;
+
+int getconfig(const char *file, opt_t *opt_p, int opt_n)
+{
+	int i = 0;
+	for(i=0; i<opt_n; i++)
+	{
+		printf("%s\t\n",opt_p[i].label);
+	}
+	return 0;
+}
+
+
 
 int main(int argc, char **argv)
 {
@@ -19,11 +31,6 @@ int main(int argc, char **argv)
 		{"shift",	"",0}
 	};
 	int n = sizeof(opts)/sizeof(opt_t);
-	int i = 0;
-	for(i=0; i<n; i++)
-	{
-		printf("%s\t\n",opts[i].label);
-	}
-	printf("\n");
+	getconfig(NULL, opts, n);
 	return 0;
 }
